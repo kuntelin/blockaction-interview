@@ -51,14 +51,14 @@ func main() {
 	// server.DELETE("/blogs/:id", blog.DeleteBlog)
 
 	// * server without gracefull shutdown
-	// err := server.Run(":8080")
+	// err := server.Run(":" + setting.PORT)
 	// if err != nil {
 	// 	panic(err)
 	// }
 
 	// * server with gracefull shutdown
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + setting.PORT,
 		Handler: server.Handler(),
 	}
 
