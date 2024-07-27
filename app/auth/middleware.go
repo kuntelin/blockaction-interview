@@ -1,30 +1,18 @@
 package auth
 
 import (
-	"errors"
-	"strings"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func extractBearerToken(header string) (string, error) {
-	if header == "" {
-		return "", errors.New("bad header value given")
-	}
-
-	jwtToken := strings.Split(header, " ")
-	if len(jwtToken) != 2 {
-		return "", errors.New("incorrectly formatted authorization header")
-	}
-
-	return jwtToken[1], nil
-}
-
 func authMiddlewareImpl(c *gin.Context) {
 	logger.Debug("Message from AuthMiddlewareImpl")
-	jwtToken, extractErr := extractBearerToken(c.GetHeader("Authorization"))
+
+	// check authorizaiton header is given
+	headerToken, extractErr := ExtractBearerToken(c.GetHeader("Authorization"))
 	if extractErr != nil {
-		c.JSON(401, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"return_code": 1001,
 			"msgid":       "unauthorized",
 			"msgdata":     nil,
@@ -33,8 +21,23 @@ func authMiddlewareImpl(c *gin.Context) {
 		c.Abort()
 		return
 	}
+	logger.Debug("headerToken is " + headerToken)
 
-	logger.Debug("jwtToken", jwtToken)
+	// check token exists
+	tokenInstance, getTokenErr := GetTokenService(&headerToken)
+	if getTokenErr != nil {
+		c.JSON(http.StatusForbidden, gin.H{
+			"return_code": 1001,
+			"msgid":       "unauthorized",
+			"msgdata":     nil,
+			"trace":       getTokenErr.Error(),
+		})
+		c.Abort()
+		return
+	}
+
+	logger.Debug("tokenInstance is " + tokenInstance.Token)
+
 	c.Next()
 }
 

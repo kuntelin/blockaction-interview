@@ -3,14 +3,10 @@ package users
 import (
 	"net/http"
 
-	"blockaction-api/common"
-
 	"github.com/gin-gonic/gin"
 )
 
-var logger = common.GetLogger()
-
-type UsersController struct{}
+// type UsersController struct{}
 
 // func ListUserController() UsersController {
 // 	return UsersController{}
@@ -52,6 +48,8 @@ type CreateUserForm struct {
 }
 
 func CreateUserController(c *gin.Context) {
+	logger.Debug("CreateUserController")
+
 	var createUserForm CreateUserForm
 
 	logger.Debug("createUserForm", createUserForm)

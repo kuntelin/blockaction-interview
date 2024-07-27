@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RouteUsers(r *gin.RouterGroup, prefix string) {
+func RegisterRoutes(r *gin.RouterGroup, prefix string) {
 	s := r.Group(prefix)
 	{
 		s.GET("", ListUserController)

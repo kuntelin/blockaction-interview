@@ -56,12 +56,25 @@ func SignInUserController(c *gin.Context) {
 func SignOutUserController(c *gin.Context) {
 	logger.Debug("SignOutUserController")
 
+	tokenValue, parseErr := ExtractBearerToken(c.GetHeader("Authorization"))
+
+	// no authorization header, nothing to do
+	if parseErr != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"return_code": 0,
+			"msgid":       "",
+			"msgdata":     nil,
+		})
+		return
+	}
+
+	// delete token with value
+	DeleteTokenService(&tokenValue)
+
 	c.JSON(http.StatusOK, gin.H{
 		"return_code": 0,
 		"msgid":       "success sign out",
 		"msgdata":     nil,
-		"data":        nil,
-		"data_size":   0,
 	})
 }
 

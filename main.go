@@ -1,9 +1,11 @@
 package main
 
 import (
+	"blockaction-api/app/auth"
 	"blockaction-api/app/users"
 	"blockaction-api/common"
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +20,13 @@ import (
 var setting = common.GetSetting()
 var logger *logging.Logger = common.GetLogger()
 
+func RequestPrintHelloworld() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		fmt.Println("Helloworld")
+		c.Next()
+	}
+}
+
 func main() {
 	if setting.DEBUG {
 		logger.Info("Runing in debug mode")
@@ -31,16 +40,25 @@ func main() {
 	// container health check
 	server.GET("/healthy", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "health check",
+			"message": "ok",
 		})
 	})
 
-	api_v1 := server.Group("/api/v1")
+	auth_r := server.Group("")
+	{
+		logger.Debug("Registering auth routes")
+		// register auth routes
+		auth.Init()
+		auth.RegisterRoutes(auth_r, "/auth")
+	}
+
+	api_v1_r := server.Group("/api/v1")
+	api_v1_r.Use(auth.AuthMiddleware())
 	{
 		logger.Debug("Registering user routes")
 		// register user routes
 		users.Init()
-		users.RouteUsers(api_v1, "/users")
+		users.RegisterRoutes(api_v1_r, "/users")
 	}
 
 	// blog := &routes.Blog{}

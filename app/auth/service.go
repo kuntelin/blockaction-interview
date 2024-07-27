@@ -33,3 +33,14 @@ func GetTokenService(tokenValue *string) (Token, error) {
 	}
 	return Token{}, errors.New("token not found")
 }
+
+func DeleteTokenService(tokenValue *string) error {
+	var newTokens = []Token{}
+	for _, t := range tokens {
+		if t.Token != *tokenValue {
+			newTokens = append(newTokens, t)
+		}
+	}
+	tokens = newTokens
+	return nil
+}
