@@ -72,8 +72,8 @@ func CreateUserController(c *gin.Context) {
 	}
 
 	user, createErr := CreateUserService(createUserForm.Username, createUserForm.Password, createUserForm.Email)
-
 	if createErr != nil {
+		logger.Debug("createErr: ", createErr)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"return_code": 1001,
 			"msgid":       "failed to create user with username %s, email %s",
@@ -81,7 +81,6 @@ func CreateUserController(c *gin.Context) {
 				"username": createUserForm.Username,
 				"email":    createUserForm.Email,
 			},
-			"trace": createErr.Error(),
 		})
 		return
 	}
@@ -101,7 +100,7 @@ func GetUserController(c *gin.Context) {
 
 	username := c.Params.ByName("username")
 
-	user := GetUserService(username)
+	user := GetUserService(&username)
 
 	if user.Username != "" {
 		c.JSON(http.StatusOK, gin.H{

@@ -3,30 +3,30 @@ package auth
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-var tokens = []Token{}
-
-func checkTokenExist(token *string) bool {
-	for _, t := range tokens {
-		if t.Token == *token {
-			return true
-		}
-	}
-	return false
-}
+var tokenRepository = []Token{}
 
 func CreateTokenService(username *string) Token {
+	var tokenValue string
+	uuidValue, err := uuid.NewV7()
+	if err == nil {
+		tokenValue = uuidValue.String()
+	} else {
+		tokenValue = time.Now().Format(time.RFC3339)
+	}
 	token := Token{
-		Token:    *username + "::" + time.Now().Format(time.RFC3339),
+		Token:    *username + "::" + tokenValue,
 		Username: *username,
 	}
-	tokens = append(tokens, token)
+	tokenRepository = append(tokenRepository, token)
 	return token
 }
 
 func GetTokenService(tokenValue *string) (Token, error) {
-	for _, t := range tokens {
+	for _, t := range tokenRepository {
 		if t.Token == *tokenValue {
 			return t, nil
 		}
@@ -35,12 +35,12 @@ func GetTokenService(tokenValue *string) (Token, error) {
 }
 
 func DeleteTokenService(tokenValue *string) error {
-	var newTokens = []Token{}
-	for _, t := range tokens {
+	var newTokens []Token
+	for _, t := range tokenRepository {
 		if t.Token != *tokenValue {
 			newTokens = append(newTokens, t)
 		}
 	}
-	tokens = newTokens
+	tokenRepository = newTokens
 	return nil
 }

@@ -7,30 +7,29 @@ import (
 )
 
 func authMiddlewareImpl(c *gin.Context) {
-	logger.Debug("Message from AuthMiddlewareImpl")
+	logger.Debug("Calling AuthMiddlewareImpl")
 
 	// check authorizaiton header is given
-	headerToken, extractErr := ExtractBearerToken(c.GetHeader("Authorization"))
+	headerToken, extractErr := ExtractBearerToken(c)
 	if extractErr != nil {
+		logger.Error("extractErr: " + extractErr.Error())
 		c.JSON(http.StatusBadRequest, gin.H{
 			"return_code": 1001,
 			"msgid":       "unauthorized",
 			"msgdata":     nil,
-			"trace":       extractErr.Error(),
 		})
 		c.Abort()
 		return
 	}
-	logger.Debug("headerToken is " + headerToken)
 
 	// check token exists
 	tokenInstance, getTokenErr := GetTokenService(&headerToken)
 	if getTokenErr != nil {
+		logger.Error("getTokenErr: " + getTokenErr.Error())
 		c.JSON(http.StatusForbidden, gin.H{
 			"return_code": 1001,
 			"msgid":       "unauthorized",
 			"msgdata":     nil,
-			"trace":       getTokenErr.Error(),
 		})
 		c.Abort()
 		return
