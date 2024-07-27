@@ -1,19 +1,20 @@
 package users
 
 import (
+	"blockaction-api/common"
 	"errors"
 )
 
-var users = []User{
+var usersRespository = []User{
 	{
-		ID:       1,
+		ID:       common.GenerateUUID(),
 		Username: "admin",
 		Password: "admin",
 		Email:    "admin@example.com",
 		IsAdmin:  true,
 	},
 	{
-		ID:       2,
+		ID:       common.GenerateUUID(),
 		Username: "alex",
 		Password: "alex",
 		Email:    "alex@example.com",
@@ -21,9 +22,9 @@ var users = []User{
 	},
 }
 
-func checkUserExists(username string) bool {
-	for _, u := range users {
-		if u.Username == username {
+func checkUserExists(username *string) bool {
+	for _, u := range usersRespository {
+		if u.Username == *username {
 			return true
 		}
 	}
@@ -31,28 +32,28 @@ func checkUserExists(username string) bool {
 }
 
 func ListUserService() []User {
-	return users
+	return usersRespository
 }
 
 func CreateUserService(username string, password string, email string) (User, error) {
-	if checkUserExists(username) {
+	if checkUserExists(&username) {
 		return User{}, errors.New("User already exists")
 	}
 
 	user := User{
-		ID:       len(users) + 1,
+		ID:       common.GenerateUUID(),
 		Username: username,
 		Password: password,
 		Email:    email,
 		IsAdmin:  false,
 	}
-	users = append(users, user)
+	usersRespository = append(usersRespository, user)
 	return user, nil
 }
 
-func GetUserService(username string) User {
-	for _, u := range users {
-		if u.Username == username {
+func GetUserService(username *string) User {
+	for _, u := range usersRespository {
+		if u.Username == *username {
 			return u
 		}
 	}
