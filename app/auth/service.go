@@ -1,46 +1,40 @@
 package auth
 
 import (
-	"errors"
-	"time"
-
 	"github.com/google/uuid"
 )
 
-var tokenRepository = []Token{}
+func uuidGenerator() string {
+	uuidValue, _ := uuid.NewV7()
+
+	return uuidValue.String()
+}
 
 func CreateTokenService(username *string) Token {
-	var tokenValue string
-	uuidValue, err := uuid.NewV7()
-	if err == nil {
-		tokenValue = uuidValue.String()
-	} else {
-		tokenValue = time.Now().Format(time.RFC3339)
-	}
 	token := Token{
-		Token:    *username + "::" + tokenValue,
+		Token:    *username + "::" + uuidGenerator(),
 		Username: *username,
 	}
-	tokenRepository = append(tokenRepository, token)
+
+	createTokenResult := db.Model(&Token{}).Create(&token)
+	if createTokenResult.Error != nil {
+		return Token{}
+	}
+
 	return token
 }
 
 func GetTokenService(tokenValue *string) (Token, error) {
-	for _, t := range tokenRepository {
-		if t.Token == *tokenValue {
-			return t, nil
-		}
+	var token Token
+
+	getTokenResult := db.Where("token = ?", *tokenValue).Find(&token)
+	if getTokenResult.Error != nil {
+		return Token{}, getTokenResult.Error
 	}
-	return Token{}, errors.New("token not found")
+
+	return token, nil
 }
 
-func DeleteTokenService(tokenValue *string) error {
-	var newTokens []Token
-	for _, t := range tokenRepository {
-		if t.Token != *tokenValue {
-			newTokens = append(newTokens, t)
-		}
-	}
-	tokenRepository = newTokens
-	return nil
+func DeleteTokenService(tokenValue *string) {
+	db.Delete(&Token{}, tokenValue)
 }

@@ -35,6 +35,17 @@ func authMiddlewareImpl(c *gin.Context) {
 		return
 	}
 
+	if tokenInstance.Token == "" {
+		logger.Error("tokenInstance.Token is empty")
+		c.JSON(http.StatusForbidden, gin.H{
+			"return_code": 1001,
+			"msgid":       "unauthorized",
+			"msgdata":     nil,
+		})
+		c.Abort()
+		return
+	}
+
 	logger.Debug("tokenInstance is " + tokenInstance.Token)
 
 	c.Next()
