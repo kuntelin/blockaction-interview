@@ -5,7 +5,6 @@ import (
 	"blockaction-api/app/users"
 	"blockaction-api/common"
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,17 +14,12 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/op/go-logging"
+	"gorm.io/gorm"
 )
 
 var setting = common.GetSetting()
 var logger *logging.Logger = common.GetLogger()
-
-func RequestPrintHelloworld() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		fmt.Println("Helloworld")
-		c.Next()
-	}
-}
+var db *gorm.DB = common.GetDB()
 
 func main() {
 	if setting.DEBUG {
@@ -37,10 +31,31 @@ func main() {
 	}
 	server := gin.Default()
 
-	// container health check
+	// container healthy check
 	server.GET("/healthy", func(c *gin.Context) {
+		var uuid string
+
+		// check database connection
+		healthyResult := db.Raw("SELECT gen_random_uuid();")
+		if healthyResult.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": healthyResult.Error.Error(),
+			})
+			return
+		}
+
+		// check database function
+		healthyResult.Scan(&uuid)
+		if uuid == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"message": "Failed to get uuid",
+			})
+			return
+		}
+
+		// connection and database function is healthy
 		c.JSON(200, gin.H{
-			"message": "ok",
+			"message": "ok, uuid: " + uuid,
 		})
 	})
 
@@ -57,7 +72,7 @@ func main() {
 	{
 		logger.Debug("Registering user routes")
 		// register user routes
-		users.Init()
+		users.Init(db)
 		users.RegisterRoutes(api_v1_r, "/users")
 	}
 
