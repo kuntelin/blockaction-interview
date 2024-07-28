@@ -31,8 +31,8 @@ func main() {
 	}
 	server := gin.Default()
 
-	// container healthy check
-	server.GET("/healthy", func(c *gin.Context) {
+	// container health check
+	server.GET("/health", func(c *gin.Context) {
 		var uuid string
 
 		// check database connection
@@ -41,6 +41,7 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": healthyResult.Error.Error(),
 			})
+			c.Abort()
 			return
 		}
 
@@ -50,13 +51,15 @@ func main() {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"message": "Failed to get uuid",
 			})
+			c.Abort()
 			return
 		}
 
 		// connection and database function is healthy
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"message": "ok, uuid: " + uuid,
 		})
+		c.Abort()
 	})
 
 	auth_r := server.Group("")
