@@ -41,9 +41,9 @@ func Bootstrap() {
 	}
 
 	for _, u := range defaultUsers {
-		insertErr := db.Model(&User{}).Create(&u).Error
-		if insertErr != nil {
-			logger.Warningf("Failed to insert default user: %v\n", insertErr)
+		_, createErr := CreateUserService(u.Username, u.Password, u.Email)
+		if createErr != nil {
+			logger.Warningf("Failed to insert default user: %v\n", createErr)
 		} else {
 			logger.Warningf(
 				"Default user inserted: %s, default password is '%s', please change it after signin\n",

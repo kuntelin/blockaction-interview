@@ -63,7 +63,7 @@ func main() {
 	{
 		logger.Debug("Registering auth routes")
 		// register auth routes
-		auth.Init()
+		auth.Init(db)
 		auth.RegisterRoutes(auth_r, "/auth")
 	}
 

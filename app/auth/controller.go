@@ -19,35 +19,37 @@ func SignInUserController(c *gin.Context) {
 
 	formData := signInUserForm{}
 
-	bindErr := c.BindJSON(&formData)
-	if bindErr != nil {
+	// valid form data
+	if formErr := c.BindJSON(&formData); formErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"return_code": 1001,
 			"msgid":       "username and password are required",
 			"msgdata": gin.H{
 				"username": formData.Username,
 			},
-			"trace": bindErr.Error(),
-		})
-		return
-	}
-	user := users.GetUserService(&formData.Username)
-	if user.Username == "" || user.Password != formData.Password {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"return_code": 1001,
-			"msgid":       "username or password is incorrect",
-			"msgdata":     nil,
 		})
 		return
 	}
 
-	token := CreateTokenService(&user.Username)
-	c.JSON(http.StatusOK, gin.H{
-		"return_code": 0,
-		"msgid":       "success sign in",
+	// validate user password
+	user := users.GetUserService(&formData.Username)
+	if users.ValidatePassword(&formData.Password, &user.Password) {
+		token := CreateTokenService(&user.Username)
+		c.JSON(http.StatusOK, gin.H{
+			"return_code": 0,
+			"msgid":       "success sign in",
+			"msgdata":     nil,
+			"data":        token,
+			"data_size":   1,
+		})
+		return
+	}
+
+	// default return bad request
+	c.JSON(http.StatusBadRequest, gin.H{
+		"return_code": 1001,
+		"msgid":       "username or password is incorrect",
 		"msgdata":     nil,
-		"data":        token,
-		"data_size":   1,
 	})
 }
 
